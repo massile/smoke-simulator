@@ -13,10 +13,7 @@ namespace Image {
 
             for(int y = height - 1; y >= 0; y--) {
             for(int x = 0; x < width; x++) {
-                Color& color = pixels[x + width*y];
-                file << int(color.r * 255) << ' '
-                    << int(color.g * 255) << ' '
-                    << int(color.b * 255) << std::endl;
+               file << Math::Vector<int>(255.f * pixels[x + y*width]);
             }}
         }
     };

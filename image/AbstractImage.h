@@ -1,15 +1,9 @@
 #pragma once
 
+#include "../maths/Vector.h"
+
 namespace Image {
-
-    struct Color {
-        float r;
-        float g;
-        float b;
-
-        Color() : r(0), g(0), b(0) {}
-        Color(float r, float g, float b) : r(r), g(g), b(b) {}
-    };
+    using Color = Math::Vector<float>;
 
     struct AbstractImage {
         int width;
