@@ -1,13 +1,15 @@
 #include "./image/Ppm.h"
+#include "./fluid/Renderer.h"
 
 int main() {
-    Image::Ppm image(800, 600);
+    Image::Ppm image(256, 256);
 
-    for (int x = 0; x < image.width; x++)
-    for (int y = 0; y < image.height; y++) {
-        image.pixels[x + y*image.width] = 
-            Image::Color(0, .5, 1);
-    }
+    Fluid::SmokeBall gas(256);
+    Math::Point light(-.2f, .2f, -.9f);
+    Math::Point eye(128, 128, 0);
+
+    Fluid::Renderer renderer(gas, eye, light);
+    renderer.RenderImage(image);
 
     image.Write("test.ppm");
 }
