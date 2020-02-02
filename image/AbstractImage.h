@@ -10,10 +10,9 @@ namespace Image {
         int height;
         Color* pixels;
 
-        AbstractImage(int width, int height) :
-            width(width),
-            height(height),
-            pixels(new Color[width * height]) {}
+        AbstractImage(int width, int height) : width(width), height(height) {
+            cudaMallocManaged(&pixels, sizeof(Color) * width * height);
+        }
 
         virtual void Write(const char* filename) const = 0;
     };

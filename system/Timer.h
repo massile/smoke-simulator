@@ -22,8 +22,8 @@ namespace System {
 
         void Stop() {
             auto endTime = high_resolution_clock::now();
-            auto elapsedTime = duration_cast<std::chrono::seconds>(endTime - startTime).count();
-            std::cout << "Le calcul a pris " << elapsedTime << " secondes." << std::endl;
+            auto elapsedTime = duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+            std::cout << "Le calcul a pris " << float(elapsedTime)/1000 << " secondes." << std::endl;
         }
     };
 }
