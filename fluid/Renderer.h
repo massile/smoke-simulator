@@ -4,18 +4,15 @@
 #include "../maths/Ray.h"
 #include "../image/AbstractImage.h"
 
-#define SKY_COLOR gas.AttenuationAt(ptGas)*STEP
-
 namespace Fluid {
     struct Renderer {
         static constexpr float INITIAL_INTENSITY = 1.f;
-        static constexpr float STEP = 0.001f;
 
         SmokeBall gas;
-        Math::Point light;
+        Math::Direction light;
         Math::Point eye;
 
-        Renderer(const SmokeBall& gas, const Math::Point& eye, const Math::Point& light) :
+        Renderer(const SmokeBall& gas, const Math::Point& eye, const Math::Direction& light) :
             gas(gas), eye(eye), light(light) {}
         
         void RenderImage(const Image::AbstractImage& image) {
@@ -32,14 +29,25 @@ namespace Fluid {
             float intensityEye = INITIAL_INTENSITY;
             for (int t = 0; t < gas.cubeSize.z; t++) {
                 const Math::Point ptGas = rayToPixel(t);
-                intensityEye *= 1.f - gas.AttenuationAt(ptGas)*STEP;
+                const float attenuation = gas.AttenuationAt(ptGas);
+                if (attenuation < 0.001f) {
+                    continue;
+                }
+                intensityEye *= fmax(1.f - attenuation, 0.f);
 
                 float intensityLight = intensityEye;
-                Math::Ray rayToLight(ptGas, light - ptGas);
+                Math::Ray rayToLight(ptGas, light);
                 for (int t2 = 0; t2 < gas.cubeSize.y; t2++) {
-                    intensityLight *= 1.f - gas.AttenuationAt(rayToLight(t2))*STEP;
+                    const float attenuation2 = gas.AttenuationAt(rayToLight(t2));
+                    if (attenuation2 < 0.001f) {
+                        break;
+                    }
+                    intensityLight *= fmax(1.f - attenuation2, 0.f);
                 }
-                totalIntensity += SKY_COLOR * intensityLight;
+                totalIntensity += attenuation * intensityLight;
+                if (intensityEye < 0.001f) {
+                    break;
+                }
             }
             // Correction gamma
             return fmin(powf(totalIntensity, 1.f/1.22f), 1.f);
