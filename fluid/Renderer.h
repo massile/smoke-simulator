@@ -39,8 +39,11 @@ namespace Fluid {
     void RayTrace(Image::Color* pixels, int width, int height, SmokeBall gas, Math::Direction light, Math::Point eye) {
         int x = threadIdx.x + blockDim.x*blockIdx.x;
         int y = threadIdx.y + blockDim.y*blockIdx.y;
+        if (x >= width || y >= height) return;
 
-        const Math::Direction toPixel(float(x)/width - .5f, float(y)/height - .5f, .5f);
+        const float xNormalized = (float(x)/width - .5f) * width/height;
+        const float yNormalized = float(y)/height - .5f;
+        const Math::Direction toPixel(xNormalized, yNormalized, .5f);
         pixels[x + y*width] = RaytracePixel(Math::Ray(eye, toPixel), gas, light, eye);
     }
 
