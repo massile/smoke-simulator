@@ -9,25 +9,32 @@ namespace Fluid {
     }
 
     __global__
-    void CalculateAttenuation(float* attenuation, int cubeSize) {
+    void CalculateAttenuation(float maxAttenuation, float* attenuation, int cubeSize) {
         int x = threadIdx.x + blockDim.x * blockIdx.x;
         int y = threadIdx.y + blockDim.y * blockIdx.y;
         int z = threadIdx.z + blockDim.z * blockIdx.z;
 
         const Math::Point voxel(x, y, z);
         const float distanceFromCenter = Math::Length(voxel - cubeSize/2.f);
-        attenuation[VoxelIndex(voxel, cubeSize)] = 0.018f / (1.f + powf(1.2f, distanceFromCenter - 60.f));
+        attenuation[VoxelIndex(voxel, cubeSize)] = maxAttenuation / (1.f + powf(1.2f, distanceFromCenter - 60.f));
     }
 
     struct SmokeBall {
         int cubeSize;
         float* attenuation;
+        dim3 numThreads;
 
-        SmokeBall(int cubeSize) : cubeSize(cubeSize) {
-            dim3 numThreads(cubeSize/8, cubeSize/8, cubeSize/8);
+        SmokeBall(int cubeSize) :
+            cubeSize(cubeSize), 
+            numThreads(dim3(cubeSize/8, cubeSize/8, cubeSize/8))
+        {
             cudaMallocManaged(&attenuation, sizeof(float)*cubeSize*cubeSize*cubeSize);
+            SetMaxAmountOfMatter(0.f);
+        }
 
-            CalculateAttenuation<<<numThreads, dim3(8,8,8)>>>(attenuation, cubeSize);
+        void SetMaxAmountOfMatter(float maxAmount) {    
+            const float maxAttenuation = maxAmount * 4.f * 3.14159265f / 510.f;
+            CalculateAttenuation<<<numThreads, dim3(8,8,8)>>>(maxAttenuation, attenuation, cubeSize);
             cudaDeviceSynchronize();
         }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+#include <sstream>
 #include "./SmokeBall.h"
 #include "../maths/Ray.h"
 #include "../image/AbstractImage.h"
@@ -59,6 +61,24 @@ namespace Fluid {
             dim3 numThreads(image.width/8, image.height/8);
             RayTrace<<<numThreads, dim3(8,8,8)>>>(image.pixels, image.width, image.height, gas, light, eye);
             cudaDeviceSynchronize();            
+        }
+
+        void MakeVideo() {
+            Image::Ppm image(1280, 720);
+            for (int frame = 0; frame < 120; frame++) {
+                gas.SetMaxAmountOfMatter(frame/50.f);
+                RenderImage(image);
+
+                std::stringstream fileName;
+                fileName << frame << ".ppm";
+                image.Write(fileName.str().c_str());
+            }
+
+            std::stringstream commandToMakeVideo;
+            commandToMakeVideo << "ffmpeg -r 25 -f image2 -s " 
+                << image.width << 'x' << image.height 
+                << " -i %d.ppm -vcodec libx264 -crf 25 -pix_fmt yuv420p video.mp4";
+            system(commandToMakeVideo.str().c_str());
         }
 
     };
