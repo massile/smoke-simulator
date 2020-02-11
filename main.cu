@@ -3,7 +3,7 @@
 #include "./system/Timer.h"
 
 int main() {
-    Fluid::SmokeBall gas(256);
+    Fluid::SmokeBall gas;
     Math::Direction light(-.2f, .9f, .2f);
     Math::Point eye(128, 128, 0);
 

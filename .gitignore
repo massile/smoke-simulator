@@ -2,3 +2,4 @@
 *.png
 *.ppm
 bin/
+out/

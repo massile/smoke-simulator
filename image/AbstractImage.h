@@ -14,6 +14,10 @@ namespace Image {
             cudaMallocManaged(&pixels, sizeof(Color) * width * height);
         }
 
+        ~AbstractImage() {
+            cudaFree(pixels);
+        }
+
         virtual void Write(const char* filename) const = 0;
     };
 
