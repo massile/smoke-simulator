@@ -15,6 +15,19 @@ namespace Fluid {
         currentValue[VoxelIndex(voxel)] = dissipation * prevValue[VoxelIndex(voxel - v*dt)];
     }
 
+    __global__
+    void Buoyancy(Math::Direction* prevVelocity, Math::Direction* velocity, float* temperature, float* attenuation, float dt) {
+        int x = threadIdx.x + blockDim.x * blockIdx.x;
+        int y = threadIdx.y + blockDim.y * blockIdx.y;
+        int z = threadIdx.z + blockDim.z * blockIdx.z;
+
+        const Math::Point voxel(x, y, z);
+        const int index = VoxelIndex(voxel);
+        velocity[index] = (
+            prevVelocity[index] + Math::Direction(.0f, dt*temperature[index] - attenuation[index]*0.05f, .0f)
+        );
+    }
+
     void Simulate(Renderer& renderer, Image::AbstractImage& image) {
         SmokeBall& gas = renderer.gas;
         const float dt = 1.f;
@@ -28,13 +41,18 @@ namespace Fluid {
             cudaDeviceSynchronize();
             gas.velocity.Swap();
 
-            Advection<<<numThreads, numBlocks>>>(gas.attenuation.previous, gas.attenuation.current, gas.velocity.current, dt, 0.98f);
+            Advection<<<numThreads, numBlocks>>>(gas.temperature.previous, gas.temperature.current, gas.velocity.current, dt, 0.998f);
+            cudaDeviceSynchronize();
+            gas.temperature.Swap();
+
+            Advection<<<numThreads, numBlocks>>>(gas.attenuation.previous, gas.attenuation.current, gas.velocity.current, dt, 0.9999f);
             cudaDeviceSynchronize();
             gas.attenuation.Swap();
 
-            Advection<<<numThreads, numBlocks>>>(gas.temperature.previous, gas.temperature.current, gas.velocity.current, dt, 0.999f);
+            Buoyancy<<<numThreads, numBlocks>>>(
+                gas.velocity.previous, gas.velocity.current, gas.temperature.current, gas.attenuation.current, dt);
             cudaDeviceSynchronize();
-            gas.temperature.Swap();
+            gas.velocity.Swap();
 
             std::stringstream fileName;
             fileName << "out/" << frame << ".ppm";
