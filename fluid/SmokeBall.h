@@ -41,6 +41,9 @@ namespace Fluid {
 
     __device__
     int VoxelIndex(const Math::Vector<int>& voxel) {
+        if (voxel.x < 0 || voxel.x >= CUBE_SIZE ||
+            voxel.y < 0 || voxel.y >= CUBE_SIZE ||
+            voxel.z < 0 || voxel.z >= CUBE_SIZE) return 0;
         return voxel.x + voxel.y*CUBE_SIZE + voxel.z*CUBE_SIZE*CUBE_SIZE;
     }
 
