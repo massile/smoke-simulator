@@ -1,8 +1,10 @@
 #pragma once
 
+#include "../system/DoubleBuffer.h"
 #include "../maths/Vector.h"
 
 #define CUBE_SIZE 256
+#define NB_ELEMENTS CUBE_SIZE*CUBE_SIZE*CUBE_SIZE
 
 namespace Fluid {
     __device__ float AttenuationAt(float* attenuation, const Math::Point& voxel);
@@ -10,18 +12,20 @@ namespace Fluid {
     __global__ void InitializeAttenuation(float maxAttenuation, float* attenuation);
 
     struct SmokeBall {
-        float* attenuation;
-        dim3 numThreads;
+        System::DoubleBuffer<float> attenuation = System::DoubleBuffer<float>(NB_ELEMENTS);
+        System::DoubleBuffer<float> temperature = System::DoubleBuffer<float>(NB_ELEMENTS);
+        System::DoubleBuffer<float> pressure = System::DoubleBuffer<float>(NB_ELEMENTS);
+        System::DoubleBuffer<Math::Direction> velocity = System::DoubleBuffer<Math::Direction>(NB_ELEMENTS);
 
-        SmokeBall() : numThreads(dim3(CUBE_SIZE/8, CUBE_SIZE/8, CUBE_SIZE/8)) {
-            cudaMallocManaged(&attenuation, sizeof(float)*CUBE_SIZE*CUBE_SIZE*CUBE_SIZE);
+        SmokeBall() {
+            dim3 numThreads = dim3(CUBE_SIZE/8, CUBE_SIZE/8, CUBE_SIZE/8);
+            dim3 numBlocks = dim3(8,8,8);
+
             const float maxAttenuation = 4.f * 3.14159265f / 570.f;
-            InitializeAttenuation<<<numThreads, dim3(8,8,8)>>>(maxAttenuation, attenuation);
-            cudaDeviceSynchronize();
-        }
+            InitializeAttenuation<<<numThreads, numBlocks>>>(maxAttenuation, attenuation.previous);
+            InitializeAttenuation<<<numThreads, numBlocks>>>(maxAttenuation, attenuation.current);
 
-        ~SmokeBall() {
-            cudaFree(attenuation);
+            cudaDeviceSynchronize();
         }
     };
 

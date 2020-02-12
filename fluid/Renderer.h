@@ -20,7 +20,7 @@ namespace Fluid {
         
         void RenderImage(const Image::AbstractImage& image) {
             dim3 numThreads(image.width/8, image.height/8);
-            RayTrace<<<numThreads, dim3(8,8,8)>>>(image.pixels, image.width, image.height, gas.attenuation, light, eye);
+            RayTrace<<<numThreads, dim3(8,8,8)>>>(image.pixels, image.width, image.height, gas.attenuation.current, light, eye);
             cudaDeviceSynchronize();            
         }
 
