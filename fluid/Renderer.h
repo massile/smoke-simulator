@@ -23,17 +23,6 @@ namespace Fluid {
             RayTrace<<<numThreads, dim3(8,8,8)>>>(image.pixels, image.width, image.height, gas.attenuation.current, light, eye);
             cudaDeviceSynchronize();            
         }
-
-        void MakeVideo() {
-            Image::Ppm image(256, 256);
-            system("mkdir out");
-            for (int frame = 0; frame < 120; frame++) {
-                RenderImage(image);
-                std::stringstream fileName;
-                fileName << "out/" << frame << ".ppm";
-                image.Write(fileName.str().c_str());
-            }
-        }
     };
 
     __global__

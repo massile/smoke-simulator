@@ -10,6 +10,7 @@ namespace Fluid {
     __device__ float AttenuationAt(float* attenuation, const Math::Point& voxel);
     __device__ int VoxelIndex(const Math::Vector<int>& voxel);
     __global__ void InitializeAttenuation(float maxAttenuation, float* attenuation);
+    __global__ void InitializeVelocity(Math::Direction initialVelocity, Math::Direction* velocity);
 
     struct SmokeBall {
         System::DoubleBuffer<float> attenuation = System::DoubleBuffer<float>(NB_ELEMENTS);
@@ -24,6 +25,10 @@ namespace Fluid {
             const float maxAttenuation = 4.f * 3.14159265f / 570.f;
             InitializeAttenuation<<<numThreads, numBlocks>>>(maxAttenuation, attenuation.previous);
             InitializeAttenuation<<<numThreads, numBlocks>>>(maxAttenuation, attenuation.current);
+
+            const Math::Direction initialVelocity(0.f, .1f, 0.f);
+            InitializeVelocity<<<numThreads, numBlocks>>>(initialVelocity, velocity.previous);
+            InitializeVelocity<<<numThreads, numBlocks>>>(initialVelocity, velocity.current);
 
             cudaDeviceSynchronize();
         }
@@ -53,4 +58,15 @@ namespace Fluid {
         const float distanceFromCenter = Math::Length(voxel - CUBE_SIZE/2.f);
         attenuation[VoxelIndex(voxel)] = maxAttenuation / (1.f + powf(1.2f, distanceFromCenter - 60.f));
     }
+
+    __global__
+    void InitializeVelocity(Math::Direction initialVelocity, Math::Direction* velocity) {
+        int x = threadIdx.x + blockDim.x * blockIdx.x;
+        int y = threadIdx.y + blockDim.y * blockIdx.y;
+        int z = threadIdx.z + blockDim.z * blockIdx.z;
+
+        const Math::Point voxel(x, y, z);
+        velocity[VoxelIndex(voxel)] = initialVelocity;
+    }
+    
 }
