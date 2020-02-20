@@ -4,7 +4,7 @@ A smoke simulator built from scratch.
 
 Link to the associated video (click on the image):
 
-![http://i3.ytimg.com/vi/PDHcTWfZfYs/maxresdefault.jpg](https://www.youtube.com/watch?v=PDHcTWfZfYs)
+[![](http://i3.ytimg.com/vi/PDHcTWfZfYs/maxresdefault.jpg)](https://www.youtube.com/watch?v=PDHcTWfZfYs)
 
 ## Dependencies
 
