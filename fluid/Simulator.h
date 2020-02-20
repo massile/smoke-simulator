@@ -107,8 +107,6 @@ namespace Fluid {
         System::DoubleBuffer<float> divergence = System::DoubleBuffer<float>(NB_ELEMENTS);
 
         for (int frame = 0; frame < 250; frame++) {
-            renderer.RenderImage(image);
-
             Advection<<<numThreads, numBlocks>>>(gas.velocity.previous, gas.velocity.current, gas.velocity.current, dt, 1.f);
             cudaDeviceSynchronize();
             gas.velocity.Swap();
@@ -141,6 +139,7 @@ namespace Fluid {
             cudaDeviceSynchronize();
             gas.velocity.Swap();
 
+            renderer.RenderImage(image);
             std::stringstream fileName;
             fileName << "out/" << frame << ".ppm";
             image.Write(fileName.str().c_str());
