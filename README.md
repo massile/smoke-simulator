@@ -12,7 +12,7 @@ In order to use this simulator you need to have [FFMPEG](https://www.ffmpeg.org)
 
 ## Build an run
 
-To create an executable simplify run the following command
+To create an executable simply run the following command
 
 ```
 nvcc main.cu -O3 -o bin/smoke
